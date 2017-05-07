@@ -1,43 +1,44 @@
 package com.queuesystem.processor;
 
+import com.queuesystem.exception.AppException;
+import com.queuesystem.exception.ErrorCode;
 import com.queuesystem.percistance.model.ActionType;
-import com.queuesystem.percistance.model.QueueInfo;
+import com.queuesystem.percistance.model.Queue;
 import com.queuesystem.percistance.model.QueueMember;
 import com.queuesystem.percistance.model.Status;
 import com.queuesystem.service.LogManager;
-import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
+import java.util.concurrent.LinkedBlockingQueue;
+
 public class QueueProcessor {
 
-	@Autowired
 	private LogManager logManager;
 
 	private static final Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
 	private LinkedBlockingQueue<QueueMember> blockingQueue = new LinkedBlockingQueue<>();
 
-	private QueueInfo queueInfo;
+	private Queue queue;
 
 	private int maxNumber = 0;
 
-	public QueueProcessor(QueueInfo queueInfo) {
-		this.queueInfo = queueInfo;
+	public QueueProcessor(Queue queue, LogManager logManager) {
+		this.queue = queue;
+		this.logManager = logManager;
 	}
 
 	public void start() {
-		QueueProducer producer = new QueueProducer(blockingQueue, queueInfo);
-		Thread thread = new Thread(producer);
+		QueueConsumer consumer = new QueueConsumer(blockingQueue, queue,logManager);
+		Thread thread = new Thread(consumer);
 		thread.start();
-		queueInfo.setStatus (Status.ACTIVE);
-
 	}
 
-	public void addMember(String queueMemberName) {
+	public void addMember(String queueMemberName) throws AppException {
+		if (queue.getStatus() != Status.ACTIVE) {
+			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE);
+		}
 		QueueMember queueMember = createQueueMember(queueMemberName);
 		if (blockingQueue.isEmpty()) {
 			blockingQueue.add(queueMember);
@@ -45,7 +46,7 @@ public class QueueProcessor {
 		} else {
 			blockingQueue.add(queueMember);
 		}
-		logManager.logAction(ActionType.QUEUE_UP, queueInfo, queueMember);
+		logManager.logAction(ActionType.QUEUE_UP, queue, queueMember);
 		log.info("Added new Queue Member -  name: [ " + queueMember.getName() + " ];" + "  Queue Number " + queueMember.getQueueNumber());
 	}
 
@@ -55,5 +56,13 @@ public class QueueProcessor {
 		queueMember.setName(queueMemberName);
 		queueMember.setQueueNumber(maxNumber++);
 		return queueMember;
+	}
+
+	public void pause() {
+		queue.setStatus(Status.INACTIVE);
+	}
+
+	public void stop() {
+		queue.setStatus(Status.CANCELLED);
 	}
 }

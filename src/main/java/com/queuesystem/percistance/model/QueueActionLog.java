@@ -29,7 +29,7 @@ public class QueueActionLog {
 	ActionType actionType;
 
 	@ManyToOne
-	QueueInfo queueInfo;
+	Queue queue;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date time;

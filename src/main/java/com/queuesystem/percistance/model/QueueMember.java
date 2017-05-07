@@ -1,12 +1,11 @@
 package com.queuesystem.percistance.model;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import lombok.Data;
 
+import javax.persistence.*;
+
 @Data
+@Entity
 public class QueueMember {
 
 	@Id
@@ -17,6 +16,6 @@ public class QueueMember {
 
 	private int queueNumber;
 
-	@OneToMany
-	private QueueInfo queueInfo;
+	@ManyToOne
+	private Queue queue;
 }
