@@ -33,4 +33,9 @@ public class QueueController {
 	public void addMember(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) throws AppException {
 		queueManager.addMember(name, queueName);
 	}
+
+	@RequestMapping(value = "/addmember", method = RequestMethod.GET)
+	public void getQueueNumber(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) throws AppException {
+		queueManager.getNumber(name, queueName);
+	}
 }

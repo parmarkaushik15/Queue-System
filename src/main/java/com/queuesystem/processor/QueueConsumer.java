@@ -1,15 +1,15 @@
 package com.queuesystem.processor;
 
-import com.queuesystem.percistance.model.ActionType;
 import com.queuesystem.percistance.model.Queue;
 import com.queuesystem.percistance.model.QueueMember;
+import com.queuesystem.percistance.model.QueueMemberStatus;
 import com.queuesystem.percistance.model.Status;
+import com.queuesystem.percistance.repository.QueueMemberRepository;
 import com.queuesystem.service.LogManager;
 import com.queuesystem.utils.Utils;
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class QueueConsumer implements Runnable {
 
@@ -17,35 +17,39 @@ public class QueueConsumer implements Runnable {
 
 	private LogManager logManager;
 
-	private final LinkedBlockingQueue blockingQueue;
-	private Queue queue;
+	private QueueMemberRepository queueMemberRepository;
 
-	QueueConsumer(LinkedBlockingQueue blockingQueue, Queue queue, LogManager logManager) {
-		this.blockingQueue = blockingQueue;
+	private final Queue queue;
+
+	QueueConsumer(Queue queue, LogManager logManager, QueueMemberRepository queueMemberRepository) {
 		this.queue = queue;
 		this.logManager = logManager;
+		this.queueMemberRepository = queueMemberRepository;
 	}
 
 	@Override
 	public void run() {
-		synchronized (blockingQueue) {
-			try {
-				while (true) {
-					if (!blockingQueue.isEmpty() && queue.getStatus() == Status.ACTIVE) {
-						Object memberWrapper = blockingQueue.poll();
-						QueueMember member = (QueueMember) memberWrapper;
-						logManager.logAction(ActionType.QUEUE_DELETE, queue, member);
-						log.info("Consumed: [" + member.getName() + "],  Queue Number: [" + member.getQueueNumber() + "]");
-						Thread.sleep(Utils.QUEUE_INTERVAL);
+		try {
+			while (true) {
+				Thread.sleep(Utils.QUEUE_INTERVAL);
+				synchronized (queue) {
+					QueueMember member = queueMemberRepository.getFirstByStatusOrderByIdAsc(QueueMemberStatus.IN_QUEUE);
+					if (queue.getStatus() == Status.ACTIVE && member != null) {
+
+						member.setStatus(QueueMemberStatus.OUT_OF_QUEUE);
+						member.setQueueLeaveTime(new Date());
+						queueMemberRepository.save(member);
+						log.info("Consumed: [" + member.getName() + "],  Queue Number: [" + member.getQueueNumber() + "]  BY QUEUE: [" + queue.getName() + "]");
 					} else if (queue.getStatus() == Status.CANCELLED) {
 						break;
 					} else {
-						blockingQueue.wait();
+						queue.wait();
 					}
 				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+
 	}
 }
