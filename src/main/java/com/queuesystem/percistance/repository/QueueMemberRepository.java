@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface QueueMemberRepository extends JpaRepository<QueueMember, Long> {
 	Queue findByName(String name);
 
-	int countQueueMemberByStatus(QueueMemberStatus status);
+	int countQueueMemberByStatusAndQueue(QueueMemberStatus status, Queue queue);
 
-	QueueMember getFirstByStatusOrderByIdAsc(QueueMemberStatus status);
+	QueueMember getFirstByStatusAndQueueOrderByIdAsc(QueueMemberStatus status,Queue queue);
 }

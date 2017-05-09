@@ -7,31 +7,31 @@ import com.queuesystem.percistance.model.QueueMember;
 import com.queuesystem.percistance.model.QueueMemberStatus;
 import com.queuesystem.percistance.model.Status;
 import com.queuesystem.percistance.repository.QueueMemberRepository;
-import com.queuesystem.service.LogManager;
-import java.util.Date;
+import com.queuesystem.percistance.repository.QueueRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
+
 public class QueueProcessor {
 
-	private LogManager logManager;
-
 	private QueueMemberRepository queueMemberRepository;
+
+	private QueueRepository queueRepository;
 
 	private static final Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
 	private final Queue queue;
+	;
 
-	private int maxNumber = 0;
-
-	public QueueProcessor(Queue queue, LogManager logManager, QueueMemberRepository queueMemberRepository) {
+	public QueueProcessor(Queue queue, QueueMemberRepository queueMemberRepository, QueueRepository queueRepository) {
 		this.queue = queue;
-		this.logManager = logManager;
 		this.queueMemberRepository = queueMemberRepository;
+		this.queueRepository = queueRepository;
 	}
 
 	public void start() {
-		QueueConsumer consumer = new QueueConsumer(queue, logManager, queueMemberRepository);
+		QueueConsumer consumer = new QueueConsumer(queue, queueMemberRepository);
 		Thread thread = new Thread(consumer);
 		thread.start();
 	}
@@ -40,17 +40,16 @@ public class QueueProcessor {
 		if (queue.getStatus() != Status.ACTIVE) {
 			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE);
 		}
-		synchronized (queue) {
-			QueueMember queueMember = createQueueMember(queueMemberName);
+		QueueMember queueMember = createQueueMember(queueMemberName);
 
-			if (queueMemberRepository.countQueueMemberByStatus(QueueMemberStatus.IN_QUEUE) == 0) {
-				queueMemberRepository.save(queueMember);
-				queue.notify();
-			} else {
-				queueMemberRepository.save(queueMember);
-			}
-			log.info("Added new Queue Member -  name: [ " + queueMember.getName() + " ];" + "  Queue Number " + queueMember.getQueueNumber());
+		if (queueMemberRepository.countQueueMemberByStatusAndQueue(QueueMemberStatus.IN_QUEUE, queue) == 0) {
+			queueMemberRepository.save(queueMember);
+			log.info("Awaking queue " + queue.getName());
+			queue.awake();
+		} else {
+			queueMemberRepository.save(queueMember);
 		}
+		log.info("Added new Queue Member -  name: [ " + queueMember.getName() + " ];" + "  Queue Number " + queueMember.getQueueNumber() + " INTO QUEUE:  [ " + queue.getName() + " ]");
 	}
 
 	private QueueMember createQueueMember(String queueMemberName) {
@@ -59,7 +58,8 @@ public class QueueProcessor {
 		queueMember.setQueue(queue);
 		queueMember.setStatus(QueueMemberStatus.IN_QUEUE);
 		queueMember.setQueueUpTime(new Date());
-		queueMember.setQueueNumber(maxNumber++);
+		queueMember.setQueueNumber(queue.getNextIndex());
+		queueRepository.save(queue);
 		return queueMember;
 	}
 

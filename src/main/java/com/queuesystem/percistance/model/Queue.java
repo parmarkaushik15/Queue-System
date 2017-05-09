@@ -13,6 +13,8 @@ public class Queue {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
+	private long nextIndex;
+
 	@Column(unique = true)
 	private String name;
 
@@ -30,22 +32,15 @@ public class Queue {
 		startTime = new Date();
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		if (!super.equals(o)) return false;
-
-		Queue queue = (Queue) o;
-
-		return id == queue.id && (name != null ? name.equals(queue.name) : queue.name == null);
+	public long getNextIndex() {
+		return nextIndex++;
 	}
 
-	@Override
-	public int hashCode() {
+	public synchronized void awake() {
+		notify();
+	}
 
-		int result = (int) (id ^ (id >>> 32));
-		result = 31 * result + name.hashCode();
-		return result;
+	public synchronized void pause() throws InterruptedException {
+		wait();
 	}
 }

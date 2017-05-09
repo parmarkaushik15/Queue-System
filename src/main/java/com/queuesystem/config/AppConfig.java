@@ -1,17 +1,19 @@
 package com.queuesystem.config;
 
 import com.queuesystem.processor.QueueProcessor;
-import java.util.HashMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 public class AppConfig {
 
-	HashMap<Long, QueueProcessor> queueMap = new HashMap<>();
+	private Map<Long, QueueProcessor> queueMap = new ConcurrentHashMap<>();
 
 	@Bean
-	public HashMap<Long, QueueProcessor> queueMap() {
+	public Map<Long, QueueProcessor> queueMap() {
 		return queueMap;
 	}
 }

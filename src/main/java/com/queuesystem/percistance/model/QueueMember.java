@@ -15,7 +15,7 @@ public class QueueMember {
 
 	private String name;
 
-	private int queueNumber;
+	private long queueNumber;
 
 	@Enumerated(EnumType.STRING)
 	private QueueMemberStatus status;
