@@ -96,13 +96,20 @@ public class QueueProcessor {
 	}
 
 	public void changeStatus(QueueStatus queueStatus) {
-		queue.setStatus(queueStatus);
 		if (queueStatus == QueueStatus.ACTIVE) {
 			if (queue.getStatus() == QueueStatus.PAUSED) {
+				queue.setStatus(queueStatus);
 				queue.awake();
 			} else {
+				queue.setStatus(queueStatus);
 				start();
 			}
+		} else if (queueStatus == QueueStatus.STOPPED && queue.getStatus() == QueueStatus.PAUSED) {
+			queue.setStatus(queueStatus);
+			queue.awake();
+		} else if (queueStatus == QueueStatus.PAUSED && queue.getStatus() == QueueStatus.STOPPED) {
+			queue.setStatus(queueStatus);
+			start();
 		}
 	}
 
