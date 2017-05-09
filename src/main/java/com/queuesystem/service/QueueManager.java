@@ -10,8 +10,6 @@ import com.queuesystem.processor.QueueProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -141,7 +139,6 @@ public class QueueManager {
 	public String addMember(String memberName, String queueName) throws AppException {
 		Queue queue = getQueueByName(queueName);
 		checkQueueOnNull(queueName, queue);
-		Pageable first = new PageRequest(0, 1);
 		QueueMember member = queueMap.get(queue.getId()).addMember(memberName);
 		return memberName + " added in Queue: " + queueName + " successfully.  your queue number is: " +
 				member.getQueueNumber() + ".   you can check people before you in queue  with queue number";
@@ -156,11 +153,10 @@ public class QueueManager {
 	}
 
 	public String addMember(String memberName) throws AppException {
-//		Queue queue = queueMemberRepository.getQueueIdWithLowestActiveMembers(QueueMemberStatus.IN_QUEUE).get(0).getQueue();
-//		QueueMember member = queueMap.get(queue.getId()).addMember(memberName);
-//		return memberName + " added in Queue: " + queue.getName() + " successfully.  your queue number is: " +
-//				member.getQueueNumber() + ".   you can check people before you in queue  with queue number";
-		return null;
+		Queue queue = queueRepository.getOne(queueMemberRepository.getQueueIdWithLowestActiveMembersQuantity(QueueStatus.ACTIVE.toString(), QueueMemberStatus.IN_QUEUE.toString()));
+		QueueMember member = queueMap.get(queue.getId()).addMember(memberName);
+		return memberName + " added in Queue: " + queue.getName() + " successfully.  your queue number is: " +
+				member.getQueueNumber() + ".   you can check people before you in queue  with queue number";
 	}
 
 

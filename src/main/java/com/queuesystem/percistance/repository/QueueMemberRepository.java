@@ -3,13 +3,10 @@ package com.queuesystem.percistance.repository;
 import com.queuesystem.percistance.model.Queue;
 import com.queuesystem.percistance.model.QueueMember;
 import com.queuesystem.percistance.model.QueueMemberStatus;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public interface QueueMemberRepository extends JpaRepository<QueueMember, Long> {
@@ -20,9 +17,18 @@ public interface QueueMemberRepository extends JpaRepository<QueueMember, Long> 
 
 	QueueMember findByQueueNumberAndQueue(long queueNumber, Queue queue);
 
-	int countByQueueAndStatusAndQueueNumberLessThan(Queue queue, QueueMemberStatus status, long queueNumber);
+	@Query(value = "SELECT q.id FROM" +
+			"  (SELECT id FROM queue WHERE queue.status =  :queueStatus) q" +
+			"  LEFT JOIN" +
+			"  (SELECT queue_id  FROM queue_member WHERE queue_member.status = :memberStatus) AS qm" +
+			"  ON q.id = qm.queue_id" +
+			"  GROUP BY q.id " +
+			"  ORDER BY count(qm.queue_id) ASC " +
+			"LIMIT 1", nativeQuery = true)
+	Long getQueueIdWithLowestActiveMembersQuantity(
+			@Param(value = "queueStatus") String queueStatus,
+			@Param(value = "memberStatus") String memberStatus
+	);
 
-//	@Query(value = "SELECT new QueueMember(t.queue) from QueueMember t where t.status= :status" +
-//			" group by t.queue order by count(t.id) asc")
-//	QueueMember getQueueIdWithLowestActiveMembers(@Param(value = "status") QueueMemberStatus status, Pageable pageable);
+	int countByQueueAndStatusAndQueueNumberLessThan(Queue queue, QueueMemberStatus status, long queueNumber);
 }
