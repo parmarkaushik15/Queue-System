@@ -22,7 +22,6 @@ public class QueueProcessor {
 	private static final Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
 	private final Queue queue;
-	;
 
 	public QueueProcessor(Queue queue, QueueMemberRepository queueMemberRepository, QueueRepository queueRepository) {
 		this.queue = queue;
@@ -31,14 +30,14 @@ public class QueueProcessor {
 	}
 
 	public void start() {
-		QueueConsumer consumer = new QueueConsumer(queue, queueMemberRepository);
+		QueueConsumer consumer = new QueueConsumer(queue, queueMemberRepository,queueRepository);
 		Thread thread = new Thread(consumer);
 		thread.start();
 	}
 
 	public void addMember(String queueMemberName) throws AppException {
 		if (queue.getStatus() != Status.ACTIVE) {
-			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE);
+			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE, queue.getName());
 		}
 		QueueMember queueMember = createQueueMember(queueMemberName);
 
@@ -64,7 +63,7 @@ public class QueueProcessor {
 	}
 
 	public void pause() {
-		queue.setStatus(Status.INACTIVE);
+		queue.setStatus(Status.PAUSED);
 	}
 
 	public void stop() {

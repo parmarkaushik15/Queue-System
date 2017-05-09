@@ -5,6 +5,7 @@ import com.queuesystem.percistance.model.QueueMember;
 import com.queuesystem.percistance.model.QueueMemberStatus;
 import com.queuesystem.percistance.model.Status;
 import com.queuesystem.percistance.repository.QueueMemberRepository;
+import com.queuesystem.percistance.repository.QueueRepository;
 import com.queuesystem.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,33 +17,32 @@ public class QueueConsumer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
 	private QueueMemberRepository queueMemberRepository;
-
+	private QueueRepository queueRepository;
 	private final Queue queue;
 
-	QueueConsumer(Queue queue, QueueMemberRepository queueMemberRepository) {
+	QueueConsumer(Queue queue, QueueMemberRepository queueMemberRepository, QueueRepository queueRepository) {
 		this.queue = queue;
 		this.queueMemberRepository = queueMemberRepository;
+		this.queueRepository = queueRepository;
 	}
 
 	@Override
 	public void run() {
-		if (queue.getStatus() == Status.CANCELLED) {
-			log.info("Queue not started " + queue.getName());
-			return;
-		}
-
 		try {
 			while (true) {
 				Thread.sleep(Utils.QUEUE_INTERVAL);
 
+				if (queue.getStatus() == Status.CANCELLED) {
+					log.info("Queue " + queue.getName() + " is  Cancelled");
+					return;
+				}
+
 				QueueMember member = queueMemberRepository.getFirstByStatusAndQueueOrderByIdAsc(QueueMemberStatus.IN_QUEUE, queue);
 				if (queue.getStatus() == Status.ACTIVE && member != null) {
-					member.setStatus(QueueMemberStatus.OUT_OF_QUEUE);
-					member.setQueueLeaveTime(new Date());
-					queueMemberRepository.save(member);
+					consume(member);
 					log.info("Consumed: [" + member.getName() + "],  Queue Number: [" + member.getQueueNumber() + "]  BY QUEUE: [" + queue.getName() + "]");
 				} else {
-					log.info("Pause queue " + queue.getName());
+					log.info("Queue: [ " + queue.getName() + " ] is paused");
 					queue.pause();
 				}
 			}
@@ -50,4 +50,14 @@ public class QueueConsumer implements Runnable {
 			log.error(e.getMessage(), e);
 		}
 	}
+
+	private void consume(QueueMember member) {
+		String productCode = queue.getName() + "-" + queue.getNextConsumedIndex();
+		member.setStatus(QueueMemberStatus.OUT_OF_QUEUE);
+		member.setQueueLeaveTime(new Date());
+		member.setProductCode(productCode);
+		queueMemberRepository.save(member);
+		queueRepository.save(queue);
+	}
+
 }

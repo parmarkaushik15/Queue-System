@@ -1,6 +1,7 @@
 package com.queuesystem.service;
 
 import com.queuesystem.exception.AppException;
+import com.queuesystem.exception.ErrorCode;
 import com.queuesystem.percistance.model.Queue;
 import com.queuesystem.percistance.model.Status;
 import com.queuesystem.percistance.repository.QueueMemberRepository;
@@ -31,9 +32,10 @@ public class QueueManager {
 		this.queueMap = queueMap;
 	}
 
-	public void addQueue(String name) {
+	public void addQueue(String name) throws AppException {
+		checkIfExists(name);
 		Queue queue = new Queue();
-		queue.setStatus(Status.INACTIVE);
+		queue.setStatus(Status.PAUSED);
 		queue.setName(name);
 		QueueProcessor queueProcessor = new QueueProcessor(queue, queueMemberRepository, queueRepository);
 		queue = queueRepository.save(queue);
@@ -41,8 +43,11 @@ public class QueueManager {
 		log.info("Added new Queue: [ " + queue.getName() + " ]");
 	}
 
-	public void startQueue(String queueName) {
+	public void startQueue(String queueName) throws AppException {
 		Queue queue = queueRepository.findByName(queueName);
+		if (queue.getStatus() == Status.ACTIVE) {
+			throw new AppException(ErrorCode.QUEUE_IS_ALREADY_IN_STATUS, queueName, Status.ACTIVE.toString());
+		}
 		queueMap.get(queue.getId()).start();
 		queue.setStatus(Status.ACTIVE);
 		queueRepository.save(queue);
@@ -50,11 +55,12 @@ public class QueueManager {
 
 	}
 
-	public void stopQueue(String queueName) {
-		Queue queue = queueRepository.findByName(queueName);
-		queueMap.get(queue.getId()).pause();
-		queue.setStatus(Status.INACTIVE);
-		queueRepository.save(queue);
+	public void pauseQueue(String queueName) throws AppException {
+		changeStatus(queueName, Status.PAUSED);
+	}
+
+	public void stopQueue(String queueName) throws AppException {
+		changeStatus(queueName, Status.CANCELLED);
 	}
 
 	public void addMember(String memberName, String queueName) throws AppException {
@@ -65,5 +71,21 @@ public class QueueManager {
 	public String getNumber(String name, String queueName) {
 		Queue queue = queueRepository.findByName(queueName);
 		return "";
+	}
+
+	private void checkIfExists(String name) throws AppException {
+		if (queueRepository.countByName(name) > 0) {
+			throw new AppException(ErrorCode.QUEUE_NAME_IS_USED, name);
+		}
+	}
+
+	private void changeStatus(String queueName, Status status) throws AppException {
+		Queue queue = queueRepository.findByName(queueName);
+		if (queue.getStatus() != status) {
+			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE, queueName, status.toString());
+		}
+		queueMap.get(queue.getId()).pause();
+		queue.setStatus(Status.PAUSED);
+		queueRepository.save(queue);
 	}
 }

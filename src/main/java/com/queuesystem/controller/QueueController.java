@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/queue")
 public class QueueController {
-	private final QueueManager queueManager;
+	private QueueManager queueManager;
 
 	@Autowired
 	public QueueController(QueueManager queueManager) {
@@ -19,9 +19,24 @@ public class QueueController {
 	}
 
 	@RequestMapping(value = "/addqueue", method = RequestMethod.GET)
-	public void addQueue(@RequestParam(value = "name") String name) {
-		queueManager.addQueue(name);
-		queueManager.startQueue(name);
+	public String addQueue(@RequestParam(value = "name") String name) {
+		try {
+			queueManager.addQueue(name);
+			queueManager.startQueue(name);
+			return "Queue Added and started Successfully";
+		} catch (AppException e) {
+			return e.getErrorText();
+		}
+	}
+
+	@RequestMapping(value = "/stopqueue", method = RequestMethod.GET)
+	public String stopQueue(@RequestParam(value = "name") String name) {
+		try {
+			queueManager.stopQueue(name);
+			return "Queue Stopped Sucessfully";
+		} catch (AppException e) {
+			return e.getErrorText();
+		}
 	}
 
 	@RequestMapping(value = "/cur", method = RequestMethod.GET)
@@ -30,8 +45,13 @@ public class QueueController {
 	}
 
 	@RequestMapping(value = "/addmember", method = RequestMethod.GET)
-	public void addMember(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) throws AppException {
-		queueManager.addMember(name, queueName);
+	public String addMember(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) {
+		try {
+			queueManager.addMember(name, queueName);
+			return name + " added in Queue: " + queueName + " successfully";
+		} catch (AppException e) {
+			return e.getErrorText();
+		}
 	}
 
 	@RequestMapping(value = "/getqueuemember", method = RequestMethod.GET)

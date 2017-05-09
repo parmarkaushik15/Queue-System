@@ -15,6 +15,8 @@ public class Queue {
 
 	private long nextIndex;
 
+	private long nextConsumedIndex;
+
 	@Column(unique = true)
 	private String name;
 
@@ -34,6 +36,10 @@ public class Queue {
 
 	public long getNextIndex() {
 		return nextIndex++;
+	}
+
+	public long getNextConsumedIndex() {
+		return nextConsumedIndex++;
 	}
 
 	public synchronized void awake() {

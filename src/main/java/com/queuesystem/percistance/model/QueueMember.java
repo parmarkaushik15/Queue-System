@@ -1,9 +1,9 @@
 package com.queuesystem.percistance.model;
 
-import java.util.Date;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Data
 @Entity
@@ -14,6 +14,8 @@ public class QueueMember {
 	private long id;
 
 	private String name;
+
+	private String productCode;
 
 	private long queueNumber;
 

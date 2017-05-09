@@ -37,7 +37,7 @@ public class Initializer {
 	@PostConstruct
 	public void init() {
 		log.info("-------------- Start of Initializing -----------------------");
-		List<Queue> queueList = queueRepository.findAllByStatusOrStatus(Status.ACTIVE, Status.INACTIVE);
+		List<Queue> queueList = queueRepository.findAllByStatusOrStatus(Status.ACTIVE, Status.PAUSED);
 
 		queueList.forEach(queue -> {
 			QueueProcessor queueProcessor = new QueueProcessor(queue, queueMemberRepository, queueRepository);
