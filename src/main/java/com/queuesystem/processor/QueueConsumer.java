@@ -3,7 +3,7 @@ package com.queuesystem.processor;
 import com.queuesystem.percistance.model.Queue;
 import com.queuesystem.percistance.model.QueueMember;
 import com.queuesystem.percistance.model.QueueMemberStatus;
-import com.queuesystem.percistance.model.Status;
+import com.queuesystem.percistance.model.QueueStatus;
 import com.queuesystem.percistance.repository.QueueMemberRepository;
 import com.queuesystem.percistance.repository.QueueRepository;
 import com.queuesystem.utils.Utils;
@@ -32,17 +32,21 @@ public class QueueConsumer implements Runnable {
 			while (true) {
 				Thread.sleep(Utils.QUEUE_INTERVAL);
 
-				if (queue.getStatus() == Status.CANCELLED) {
+				if (queue.getStatus() == QueueStatus.STOPPED || queue.getStatus() == QueueStatus.DELETED) {
 					log.info("Queue " + queue.getName() + " is  Cancelled");
 					return;
 				}
 
 				QueueMember member = queueMemberRepository.getFirstByStatusAndQueueOrderByIdAsc(QueueMemberStatus.IN_QUEUE, queue);
-				if (queue.getStatus() == Status.ACTIVE && member != null) {
+				if (queue.getStatus() == QueueStatus.ACTIVE && member != null) {
 					consume(member);
 					log.info("Consumed: [" + member.getName() + "],  Queue Number: [" + member.getQueueNumber() + "]  BY QUEUE: [" + queue.getName() + "]");
 				} else {
-					log.info("Queue: [ " + queue.getName() + " ] is paused");
+					if (member == null) {
+						log.info("Queue: [ " + queue.getName() + " ] has no people in line and waits");
+					} else {
+						log.info("Queue: [ " + queue.getName() + " ] is in Paused Status");
+					}
 					queue.pause();
 				}
 			}
@@ -53,7 +57,7 @@ public class QueueConsumer implements Runnable {
 
 	private void consume(QueueMember member) {
 		String productCode = queue.getName() + "-" + queue.getNextConsumedIndex();
-		member.setStatus(QueueMemberStatus.OUT_OF_QUEUE);
+		member.setStatus(QueueMemberStatus.CONSUMED);
 		member.setQueueLeaveTime(new Date());
 		member.setProductCode(productCode);
 		queueMemberRepository.save(member);

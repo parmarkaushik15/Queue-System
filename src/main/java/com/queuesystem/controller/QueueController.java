@@ -18,44 +18,104 @@ public class QueueController {
 		this.queueManager = queueManager;
 	}
 
-	@RequestMapping(value = "/addqueue", method = RequestMethod.GET)
-	public String addQueue(@RequestParam(value = "name") String name) {
+	@RequestMapping(value = "/getAllQueue", method = RequestMethod.GET, produces = {"application/json"})
+	public Response getAllQueue() {
 		try {
-			queueManager.addQueue(name);
-			queueManager.startQueue(name);
-			return "Queue Added and started Successfully";
+			return Response.getSuccessResponse(queueManager.getAllQueue());
 		} catch (AppException e) {
-			return e.getErrorText();
+			return Response.getFailResponse(e.getErrorText());
 		}
 	}
 
-	@RequestMapping(value = "/stopqueue", method = RequestMethod.GET)
-	public String stopQueue(@RequestParam(value = "name") String name) {
+
+	@RequestMapping(value = "/addqueue", method = RequestMethod.GET, produces = {"application/json"})
+	public Response addQueue(@RequestParam(value = "name") String name) {
 		try {
-			queueManager.stopQueue(name);
-			return "Queue Stopped Sucessfully";
+			return Response.getSuccessResponse(queueManager.addQueueAndStart(name));
 		} catch (AppException e) {
-			return e.getErrorText();
+			return Response.getFailResponse(e.getErrorText());
 		}
 	}
 
-	@RequestMapping(value = "/cur", method = RequestMethod.GET)
-	public void threads() {
-		System.out.println(Thread.activeCount());
-	}
-
-	@RequestMapping(value = "/addmember", method = RequestMethod.GET)
-	public String addMember(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) {
+	@RequestMapping(value = "/update", method = RequestMethod.GET, produces = {"application/json"})
+	public Response deleteQueue(@RequestParam(value = "name") String name, @RequestParam(value = "newname") String newName) {
 		try {
-			queueManager.addMember(name, queueName);
-			return name + " added in Queue: " + queueName + " successfully";
+			return Response.getSuccessResponse(queueManager.updateQueue(name, newName));
 		} catch (AppException e) {
-			return e.getErrorText();
+			return Response.getFailResponse(e.getErrorText());
 		}
 	}
 
-	@RequestMapping(value = "/getqueuemember", method = RequestMethod.GET)
-	public void getQueueNumber(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) throws AppException {
-		queueManager.getNumber(name, queueName);
+	@RequestMapping(value = "/deletequeue", method = RequestMethod.GET, produces = {"application/json"})
+	public Response deleteQueue(@RequestParam(value = "name") String name) {
+		try {
+			return Response.getSuccessResponse(queueManager.deleteQueue(name));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/stop", method = RequestMethod.GET, produces = {"application/json"})
+	public Response stopQueue(@RequestParam(value = "name") String name) {
+		try {
+			return Response.getSuccessResponse(queueManager.stopQueue(name));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/pause", method = RequestMethod.GET, produces = {"application/json"})
+	public Response pauseQueue(@RequestParam(value = "name") String name) {
+		try {
+			return Response.getSuccessResponse(queueManager.pauseQueue(name));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/resume", method = RequestMethod.GET, produces = {"application/json"})
+	public Response resumeQueue(@RequestParam(value = "name") String name) {
+		try {
+			return Response.getSuccessResponse(queueManager.resumeQueue(name));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/addmember", method = RequestMethod.GET, produces = {"application/json"})
+	public Response addMemberInSpecificQueue(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) {
+		try {
+			return Response.getSuccessResponse(queueManager.addMember(name, queueName));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/addMemberAnywhere", method = RequestMethod.GET, produces = {"application/json"})
+	public Response addMember(@RequestParam(value = "name") String name) {
+		try {
+			return Response.getSuccessResponse(queueManager.addMember(name));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/removemember", method = RequestMethod.GET, produces = {"application/json"})
+	public Response removeMember(@RequestParam(value = "queuenumber") long queueNumber, @RequestParam(value = "queuename") String queueName) {
+		try {
+			return Response.getSuccessResponse(queueManager.removeMember(queueNumber, queueName));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
+	}
+
+	@RequestMapping(value = "/me", method = RequestMethod.GET, produces = {"application/json"})
+	public Response peopleBeforeMe(@RequestParam(value = "queuenumber") long queueNumber, @RequestParam(value = "queuename") String queueName) {
+		try {
+			return Response.getSuccessResponse(queueManager.getMyInfo(queueNumber, queueName));
+		} catch (AppException e) {
+			return Response.getFailResponse(e.getErrorText());
+		}
 	}
 }
+

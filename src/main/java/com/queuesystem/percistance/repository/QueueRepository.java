@@ -1,7 +1,7 @@
 package com.queuesystem.percistance.repository;
 
 import com.queuesystem.percistance.model.Queue;
-import com.queuesystem.percistance.model.Status;
+import com.queuesystem.percistance.model.QueueStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,9 +10,13 @@ import java.util.List;
 @Repository
 public interface QueueRepository extends JpaRepository<Queue, Long> {
 
-	Queue findByName(String name);
+	Queue findByNameAndStatusNot(String name, QueueStatus queueStatus);
 
-	List<Queue> findAllByStatusOrStatus(Status status1, Status status2);
+	List<Queue> findAllByStatus(QueueStatus queueStatus);
 
-	int countByName(String name);
+	List<Queue> findAllByStatusNot(QueueStatus queueStatus);
+
+
+	int countByNameAndStatusNot(String name, QueueStatus queueStatus);
+
 }

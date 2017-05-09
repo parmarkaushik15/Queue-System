@@ -1,7 +1,7 @@
 package com.queuesystem.config;
 
 import com.queuesystem.percistance.model.Queue;
-import com.queuesystem.percistance.model.Status;
+import com.queuesystem.percistance.model.QueueStatus;
 import com.queuesystem.percistance.repository.QueueMemberRepository;
 import com.queuesystem.percistance.repository.QueueRepository;
 import com.queuesystem.processor.QueueProcessor;
@@ -36,16 +36,16 @@ public class Initializer {
 
 	@PostConstruct
 	public void init() {
-		log.info("-------------- Start of Initializing -----------------------");
-		List<Queue> queueList = queueRepository.findAllByStatusOrStatus(Status.ACTIVE, Status.PAUSED);
+		log.info("-------------- Start of initializing -----------------------");
+		List<Queue> queueList = queueRepository.findAllByStatusNot(QueueStatus.DELETED);
 
 		queueList.forEach(queue -> {
 			QueueProcessor queueProcessor = new QueueProcessor(queue, queueMemberRepository, queueRepository);
 			queueMap.put(queue.getId(), queueProcessor);
-			if (queue.getStatus() == Status.ACTIVE) {
+			if (queue.getStatus() != QueueStatus.STOPPED) {
 				queueProcessor.start();
 			}
-			log.info(queue.getName() + "  was initalized  [" + queue + " ]");
+			log.info(queue.getName() + "  was initialized  [" + queue + " ]");
 		});
 	}
 }

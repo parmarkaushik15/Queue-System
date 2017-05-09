@@ -5,7 +5,7 @@ import com.queuesystem.exception.ErrorCode;
 import com.queuesystem.percistance.model.Queue;
 import com.queuesystem.percistance.model.QueueMember;
 import com.queuesystem.percistance.model.QueueMemberStatus;
-import com.queuesystem.percistance.model.Status;
+import com.queuesystem.percistance.model.QueueStatus;
 import com.queuesystem.percistance.repository.QueueMemberRepository;
 import com.queuesystem.percistance.repository.QueueRepository;
 import org.slf4j.Logger;
@@ -19,7 +19,7 @@ public class QueueProcessor {
 
 	private QueueRepository queueRepository;
 
-	private static final Logger log = LoggerFactory.getLogger(QueueConsumer.class);
+	private static final Logger log = LoggerFactory.getLogger(QueueProcessor.class);
 
 	private final Queue queue;
 
@@ -30,13 +30,13 @@ public class QueueProcessor {
 	}
 
 	public void start() {
-		QueueConsumer consumer = new QueueConsumer(queue, queueMemberRepository,queueRepository);
+		QueueConsumer consumer = new QueueConsumer(queue, queueMemberRepository, queueRepository);
 		Thread thread = new Thread(consumer);
 		thread.start();
 	}
 
-	public void addMember(String queueMemberName) throws AppException {
-		if (queue.getStatus() != Status.ACTIVE) {
+	public QueueMember addMember(String queueMemberName) throws AppException {
+		if (queue.getStatus() != QueueStatus.ACTIVE) {
 			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE, queue.getName());
 		}
 		QueueMember queueMember = createQueueMember(queueMemberName);
@@ -46,9 +46,42 @@ public class QueueProcessor {
 			log.info("Awaking queue " + queue.getName());
 			queue.awake();
 		} else {
-			queueMemberRepository.save(queueMember);
+			queueMember = queueMemberRepository.save(queueMember);
 		}
 		log.info("Added new Queue Member -  name: [ " + queueMember.getName() + " ];" + "  Queue Number " + queueMember.getQueueNumber() + " INTO QUEUE:  [ " + queue.getName() + " ]");
+		return queueMember;
+	}
+
+	public QueueMember removeMember(long queueNumber) throws AppException {
+		QueueMember member = queueMemberRepository.findByQueueNumberAndQueue(queueNumber, queue);
+		if (member == null) {
+			throw new AppException(ErrorCode.NO_MEMBER_IN_QUEUE, queueNumber, queue.getName());
+		}
+		if (member.getStatus() != QueueMemberStatus.IN_QUEUE) {
+			throw new AppException(ErrorCode.QUEUE_MEMBER_IS_NOT_IN_QUEUE, member.getName(), queue.getName());
+		}
+		member.setStatus(QueueMemberStatus.LEFT_QUEUE_MANUALLY);
+		member.setQueueLeaveTime(new Date());
+		return queueMemberRepository.save(member);
+	}
+
+	public String getMemberInfo(long queueNumber) throws AppException {
+		QueueMember requestedMember = queueMemberRepository.findByQueueNumberAndQueue(queueNumber, queue);
+		if (requestedMember == null) {
+			throw new AppException(ErrorCode.NO_MEMBER_IN_QUEUE, queueNumber, queue.getName());
+		}
+		if (requestedMember.getProductCode() != null) {
+			return "Your product Code Is: " + requestedMember.getProductCode();
+		}
+		if (requestedMember.getStatus() != QueueMemberStatus.IN_QUEUE) {
+			throw new AppException(ErrorCode.QUEUE_MEMBER_LEFT_QUEUE, requestedMember.getName(), queue.getName());
+		}
+		int peopleBeforeMe = queueMemberRepository.countByQueueAndStatusAndQueueNumberLessThan(queue, QueueMemberStatus.IN_QUEUE, requestedMember.getQueueNumber());
+		if (peopleBeforeMe == 0) {
+			return "you are being consumed right now";
+		}
+		return "before you in Queue:" + queue.getName() + " are Standing: " + peopleBeforeMe + " people";
+
 	}
 
 	private QueueMember createQueueMember(String queueMemberName) {
@@ -62,11 +95,18 @@ public class QueueProcessor {
 		return queueMember;
 	}
 
-	public void pause() {
-		queue.setStatus(Status.PAUSED);
+	public void changeStatus(QueueStatus queueStatus) {
+		queue.setStatus(queueStatus);
+		if (queueStatus == QueueStatus.ACTIVE) {
+			if (queue.getStatus() == QueueStatus.PAUSED) {
+				queue.awake();
+			} else {
+				start();
+			}
+		}
 	}
 
-	public void stop() {
-		queue.setStatus(Status.CANCELLED);
+	public void changeName(String newName) {
+		queue.setName(newName);
 	}
 }

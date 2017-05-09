@@ -5,9 +5,9 @@ import java.text.MessageFormat;
 public class AppException extends Exception {
 
 	private ErrorCode errorCode;
-	private String[] params;
+	private Object[] params;
 
-	public AppException(ErrorCode errorCode, String... params) {
+	public AppException(ErrorCode errorCode, Object... params) {
 		super(errorCode.toString());
 
 		this.errorCode = errorCode;

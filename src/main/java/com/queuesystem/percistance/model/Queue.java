@@ -13,15 +13,14 @@ public class Queue {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	private long nextIndex;
+	private long nextIndex = 1;
 
-	private long nextConsumedIndex;
+	private long nextConsumedIndex = 1;
 
-	@Column(unique = true)
 	private String name;
 
 	@Enumerated(EnumType.STRING)
-	private Status status;
+	private QueueStatus status;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date startTime;

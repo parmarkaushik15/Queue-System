@@ -1,7 +1,11 @@
 package com.queuesystem.percistance.model;
 
-public enum Status {
+public enum QueueStatus {
 	ACTIVE,
+
 	PAUSED,
-	CANCELLED;
+
+	STOPPED,
+
+	DELETED
 }

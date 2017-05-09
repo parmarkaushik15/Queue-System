@@ -30,4 +30,11 @@ public class QueueMember {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date queueLeaveTime;
+
+	public QueueMember(Queue queue) {
+		this.queue = queue;
+	}
+
+	public QueueMember() {
+	}
 }
