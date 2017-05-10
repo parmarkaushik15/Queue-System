@@ -35,7 +35,7 @@ public class QueueConsumer implements Runnable {
 				Thread.sleep(Utils.QUEUE_INTERVAL);
 
 				if (queue.getStatus() == QueueStatus.STOPPED || queue.getStatus() == QueueStatus.DELETED) {
-					log.info("Queue " + queue.getName() + " is  Cancelled");
+					log.info("Queue " + queue.getName() + " is  DELETED");
 					return;
 				}
 

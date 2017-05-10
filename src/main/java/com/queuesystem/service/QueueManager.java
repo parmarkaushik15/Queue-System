@@ -101,7 +101,7 @@ public class QueueManager {
 		queueRepository.save(queue);
 		queueMap.remove(queue.getId());
 		actionLogRepository.save(new QueueActionLog(QueueActionType.DELETED.getText(), queue));
-		log.info(queue.getName() + "  cancelled");
+		log.info(queue.getName() + "  Deleted");
 		return "Queue Deleted Successfully";
 	}
 
