@@ -17,7 +17,9 @@ public class QueueConsumer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(QueueConsumer.class);
 
 	private QueueMemberRepository queueMemberRepository;
+
 	private QueueRepository queueRepository;
+
 	private final Queue queue;
 
 	QueueConsumer(Queue queue, QueueMemberRepository queueMemberRepository, QueueRepository queueRepository) {
@@ -40,12 +42,13 @@ public class QueueConsumer implements Runnable {
 				QueueMember member = queueMemberRepository.getFirstByStatusAndQueueOrderByIdAsc(QueueMemberStatus.IN_QUEUE, queue);
 				if (queue.getStatus() == QueueStatus.ACTIVE && member != null) {
 					consume(member);
-					log.info("Consumed: [" + member.getName() + "],  Queue Number: [" + member.getQueueNumber() + "]  BY QUEUE: [" + queue.getName() + "]");
+					log.info("Consumed: [" + member.getName() + "],  Queue Number: [" + member.getQueueNumber() + "]  BY QUEUE: [" + queue.getName() + "]  ProductCode: [" + member.getProductCode() + "] ");
 				} else {
-					if (member == null) {
-						log.info("Queue: [ " + queue.getName() + " ] has no people in line and waits");
-					} else {
+					System.out.println(queue.getStatus());
+					if (queue.getStatus() != QueueStatus.ACTIVE) {
 						log.info("Queue: [ " + queue.getName() + " ] is in Paused Status");
+					} else {
+						log.info("Queue: [ " + queue.getName() + " ] has no people in line and waits");
 					}
 					queue.pause();
 				}

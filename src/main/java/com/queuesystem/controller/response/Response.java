@@ -1,4 +1,4 @@
-package com.queuesystem.controller;
+package com.queuesystem.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.queuesystem.percistance.model.Queue;

@@ -36,9 +36,7 @@ public class QueueProcessor {
 	}
 
 	public QueueMember addMember(String queueMemberName) throws AppException {
-		if (queue.getStatus() != QueueStatus.ACTIVE) {
-			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE, queue.getName());
-		}
+		checkOnQueueStatus();
 		QueueMember queueMember = createQueueMember(queueMemberName);
 
 		if (queueMemberRepository.countQueueMemberByStatusAndQueue(QueueMemberStatus.IN_QUEUE, queue) == 0) {
@@ -53,6 +51,7 @@ public class QueueProcessor {
 	}
 
 	public QueueMember removeMember(long queueNumber) throws AppException {
+		checkOnQueueStatus();
 		QueueMember member = queueMemberRepository.findByQueueNumberAndQueue(queueNumber, queue);
 		if (member == null) {
 			throw new AppException(ErrorCode.NO_MEMBER_IN_QUEUE, queueNumber, queue.getName());
@@ -66,6 +65,7 @@ public class QueueProcessor {
 	}
 
 	public String getMemberInfo(long queueNumber) throws AppException {
+		checkOnQueueStatus();
 		QueueMember requestedMember = queueMemberRepository.findByQueueNumberAndQueue(queueNumber, queue);
 		if (requestedMember == null) {
 			throw new AppException(ErrorCode.NO_MEMBER_IN_QUEUE, queueNumber, queue.getName());
@@ -96,24 +96,21 @@ public class QueueProcessor {
 	}
 
 	public void changeStatus(QueueStatus queueStatus) {
-		if (queueStatus == QueueStatus.ACTIVE) {
-			if (queue.getStatus() == QueueStatus.PAUSED) {
-				queue.setStatus(queueStatus);
-				queue.awake();
-			} else {
-				queue.setStatus(queueStatus);
-				start();
-			}
-		} else if (queueStatus == QueueStatus.STOPPED) {
-			queue.setStatus(queueStatus);
-			queue.awake();
-		} else if (queueStatus == QueueStatus.PAUSED && queue.getStatus() == QueueStatus.STOPPED) {
+		if (queue.getStatus() == QueueStatus.STOPPED) {
 			queue.setStatus(queueStatus);
 			start();
 		}
+		queue.setStatus(queueStatus);
+		queue.awake();
 	}
 
 	public void changeName(String newName) {
 		queue.setName(newName);
+	}
+
+	private void checkOnQueueStatus() throws AppException {
+		if (queue.getStatus() != QueueStatus.ACTIVE) {
+			throw new AppException(ErrorCode.QUEUE_IS_NOT_ACTIVE, queue.getName());
+		}
 	}
 }

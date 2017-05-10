@@ -1,4 +1,4 @@
-package com.queuesystem.controller;
+package com.queuesystem.controller.response;
 
 import com.queuesystem.percistance.model.QueueStatus;
 import lombok.Data;

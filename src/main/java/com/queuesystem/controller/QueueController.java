@@ -1,9 +1,9 @@
 package com.queuesystem.controller;
 
+import com.queuesystem.controller.response.Response;
 import com.queuesystem.exception.AppException;
 import com.queuesystem.service.QueueManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/queue")
 public class QueueController {
-
 	private QueueManager queueManager;
 
 	@Autowired
@@ -20,7 +19,7 @@ public class QueueController {
 		this.queueManager = queueManager;
 	}
 
-	@RequestMapping(value = "/getAllQueue", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "/getAllQueue", method = RequestMethod.GET, produces = {"application/json"})
 	public Response getAllQueue() {
 		try {
 			return Response.getSuccessResponse(queueManager.getAllQueue());
@@ -29,10 +28,9 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/addqueue", method = RequestMethod.POST, produces = { "application/json" })
-	public Response addQueue(@RequestBody String name) {
 
-		System.out.println(name);
+	@RequestMapping(value = "/addqueue", method = RequestMethod.POST, produces = {"application/json"})
+	public Response addQueue(@RequestParam(value = "name") String name) {
 		try {
 			return Response.getSuccessResponse(queueManager.addQueueAndStart(name));
 		} catch (AppException e) {
@@ -40,8 +38,8 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/update", method = RequestMethod.POST, produces = { "application/json" })
-	public Response deleteQueue(@RequestBody String name, @RequestBody String newName) {
+	@RequestMapping(value = "/update", method = RequestMethod.POST, produces = {"application/json"})
+	public Response deleteQueue(@RequestParam(value = "name") String name, @RequestParam(value = "newname") String newName) {
 		try {
 			return Response.getSuccessResponse(queueManager.updateQueue(name, newName));
 		} catch (AppException e) {
@@ -49,8 +47,8 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/deletequeue", method = RequestMethod.POST, produces = { "application/json" })
-	public Response deleteQueue(@RequestBody String name) {
+	@RequestMapping(value = "/deletequeue", method = RequestMethod.POST, produces = {"application/json"})
+	public Response deleteQueue(@RequestParam(value = "name") String name) {
 		try {
 			return Response.getSuccessResponse(queueManager.deleteQueue(name));
 		} catch (AppException e) {
@@ -58,8 +56,8 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/stop", method = RequestMethod.POST, produces = { "application/json" })
-	public Response stopQueue(@RequestBody String name) {
+	@RequestMapping(value = "/stop", method = RequestMethod.POST, produces = {"application/json"})
+	public Response stopQueue(@RequestParam(value = "name") String name) {
 		try {
 			return Response.getSuccessResponse(queueManager.stopQueue(name));
 		} catch (AppException e) {
@@ -67,8 +65,8 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/pause", method = RequestMethod.POST, produces = { "application/json" })
-	public Response pauseQueue(@RequestBody String name) {
+	@RequestMapping(value = "/pause", method = RequestMethod.POST, produces = {"application/json"})
+	public Response pauseQueue(@RequestParam(value = "name") String name) {
 		try {
 			return Response.getSuccessResponse(queueManager.pauseQueue(name));
 		} catch (AppException e) {
@@ -76,8 +74,8 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/resume", method = RequestMethod.POST, produces = { "application/json" })
-	public Response resumeQueue(@RequestBody String name) {
+	@RequestMapping(value = "/resume", method = RequestMethod.POST, produces = {"application/json"})
+	public Response resumeQueue(@RequestParam(value = "name") String name) {
 		try {
 			return Response.getSuccessResponse(queueManager.resumeQueue(name));
 		} catch (AppException e) {
@@ -85,7 +83,7 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/addmember", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "/addmember", method = RequestMethod.GET, produces = {"application/json"})
 	public Response addMemberInSpecificQueue(@RequestParam(value = "name") String name, @RequestParam(value = "queuename") String queueName) {
 		try {
 			return Response.getSuccessResponse(queueManager.addMember(name, queueName));
@@ -94,7 +92,7 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/addMemberAnywhere", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "/addMemberAnywhere", method = RequestMethod.GET, produces = {"application/json"})
 	public Response addMember(@RequestParam(value = "name") String name) {
 		try {
 			return Response.getSuccessResponse(queueManager.addMember(name));
@@ -103,7 +101,7 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/removemember", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "/removemember", method = RequestMethod.GET, produces = {"application/json"})
 	public Response removeMember(@RequestParam(value = "queuenumber") long queueNumber, @RequestParam(value = "queuename") String queueName) {
 		try {
 			return Response.getSuccessResponse(queueManager.removeMember(queueNumber, queueName));
@@ -112,7 +110,7 @@ public class QueueController {
 		}
 	}
 
-	@RequestMapping(value = "/me", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "/me", method = RequestMethod.GET, produces = {"application/json"})
 	public Response peopleBeforeMe(@RequestParam(value = "queuenumber") long queueNumber, @RequestParam(value = "queuename") String queueName) {
 		try {
 			return Response.getSuccessResponse(queueManager.getMyInfo(queueNumber, queueName));
