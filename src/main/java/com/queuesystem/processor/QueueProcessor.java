@@ -104,7 +104,7 @@ public class QueueProcessor {
 				queue.setStatus(queueStatus);
 				start();
 			}
-		} else if (queueStatus == QueueStatus.STOPPED && queue.getStatus() == QueueStatus.PAUSED) {
+		} else if (queueStatus == QueueStatus.STOPPED) {
 			queue.setStatus(queueStatus);
 			queue.awake();
 		} else if (queueStatus == QueueStatus.PAUSED && queue.getStatus() == QueueStatus.STOPPED) {
